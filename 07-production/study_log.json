@@ -1,0 +1,474 @@
+{
+  "sessions": [
+    {
+      "topic": "langgraph",
+      "minutes": 45,
+      "date": "2026-08-26"
+    },
+    {
+      "topic": "agent_learning_route",
+      "minutes": 120,
+      "date": "2026-08-26"
+    },
+    {
+      "topic": "langgraph",
+      "minutes": 45,
+      "date": "2026-08-27"
+    },
+    {
+      "topic": "langgraph",
+      "minutes": 45,
+      "date": "2026-08-27"
+    },
+    {
+      "topic": "Learn From Data",
+      "minutes": 360,
+      "date": "2026-08-27"
+    },
+    {
+      "topic": "fastapi",
+      "minutes": 30,
+      "date": "2026-06-05"
+    },
+    {
+      "topic": "rag",
+      "minutes": 45,
+      "date": "2026-06-07"
+    },
+    {
+      "topic": "rag",
+      "minutes": 30,
+      "date": "2026-06-07"
+    },
+    {
+      "topic": "langgraph",
+      "minutes": 45,
+      "date": "2026-06-08"
+    },
+    {
+      "topic": "python",
+      "minutes": 60,
+      "date": "2026-06-09"
+    },
+    {
+      "topic": "sql",
+      "minutes": 30,
+      "date": "2026-06-10"
+    },
+    {
+      "topic": "langgraph",
+      "minutes": 90,
+      "date": "2026-06-10"
+    },
+    {
+      "topic": "rag",
+      "minutes": 60,
+      "date": "2026-06-11"
+    },
+    {
+      "topic": "sql",
+      "minutes": 45,
+      "date": "2026-06-12"
+    },
+    {
+      "topic": "nexon_prep",
+      "minutes": 30,
+      "date": "2026-06-12"
+    },
+    {
+      "topic": "python",
+      "minutes": 60,
+      "date": "2026-06-13"
+    },
+    {
+      "topic": "python",
+      "minutes": 50,
+      "date": "2026-06-13"
+    },
+    {
+      "topic": "fastapi",
+      "minutes": 15,
+      "date": "2026-06-14"
+    },
+    {
+      "topic": "fastapi",
+      "minutes": 45,
+      "date": "2026-06-15"
+    },
+    {
+      "topic": "langgraph",
+      "minutes": 30,
+      "date": "2026-06-16"
+    },
+    {
+      "topic": "langgraph",
+      "minutes": 50,
+      "date": "2026-06-18"
+    },
+    {
+      "topic": "langgraph",
+      "minutes": 30,
+      "date": "2026-06-18"
+    },
+    {
+      "topic": "sql",
+      "minutes": 60,
+      "date": "2026-06-20"
+    },
+    {
+      "topic": "dotnet",
+      "minutes": 30,
+      "date": "2026-06-20"
+    },
+    {
+      "topic": "fastapi",
+      "minutes": 30,
+      "date": "2026-06-21"
+    },
+    {
+      "topic": "mcp",
+      "minutes": 75,
+      "date": "2026-06-24"
+    },
+    {
+      "topic": "agents",
+      "minutes": 30,
+      "date": "2026-06-24"
+    },
+    {
+      "topic": "fastapi",
+      "minutes": 45,
+      "date": "2026-06-25"
+    },
+    {
+      "topic": "learning_from_data",
+      "minutes": 30,
+      "date": "2026-06-25"
+    },
+    {
+      "topic": "agents",
+      "minutes": 25,
+      "date": "2026-06-26"
+    },
+    {
+      "topic": "rag",
+      "minutes": 25,
+      "date": "2026-06-26"
+    },
+    {
+      "topic": "python",
+      "minutes": 60,
+      "date": "2026-06-26"
+    },
+    {
+      "topic": "mcp",
+      "minutes": 120,
+      "date": "2026-06-27"
+    },
+    {
+      "topic": "vision_agent",
+      "minutes": 15,
+      "date": "2026-06-28"
+    },
+    {
+      "topic": "sql",
+      "minutes": 50,
+      "date": "2026-06-28"
+    },
+    {
+      "topic": "evals",
+      "minutes": 30,
+      "date": "2026-06-28"
+    },
+    {
+      "topic": "mcp",
+      "minutes": 45,
+      "date": "2026-06-29"
+    },
+    {
+      "topic": "langgraph",
+      "minutes": 75,
+      "date": "2026-07-02"
+    },
+    {
+      "topic": "python",
+      "minutes": 25,
+      "date": "2026-07-04"
+    },
+    {
+      "topic": "docker",
+      "minutes": 45,
+      "date": "2026-07-04"
+    },
+    {
+      "topic": "fastapi",
+      "minutes": 15,
+      "date": "2026-07-06"
+    },
+    {
+      "topic": "learning_from_data",
+      "minutes": 75,
+      "date": "2026-07-10"
+    },
+    {
+      "topic": "rag",
+      "minutes": 60,
+      "date": "2026-07-11"
+    },
+    {
+      "topic": "evals",
+      "minutes": 30,
+      "date": "2026-07-13"
+    },
+    {
+      "topic": "evals",
+      "minutes": 50,
+      "date": "2026-07-15"
+    },
+    {
+      "topic": "nexon_prep",
+      "minutes": 45,
+      "date": "2026-07-16"
+    },
+    {
+      "topic": "rag",
+      "minutes": 30,
+      "date": "2026-07-17"
+    },
+    {
+      "topic": "langgraph",
+      "minutes": 30,
+      "date": "2026-07-18"
+    },
+    {
+      "topic": "rag",
+      "minutes": 45,
+      "date": "2026-07-18"
+    },
+    {
+      "topic": "vision_agent",
+      "minutes": 15,
+      "date": "2026-07-19"
+    },
+    {
+      "topic": "langgraph",
+      "minutes": 50,
+      "date": "2026-07-19"
+    },
+    {
+      "topic": "langgraph",
+      "minutes": 25,
+      "date": "2026-07-19"
+    },
+    {
+      "topic": "dotnet",
+      "minutes": 60,
+      "date": "2026-07-21"
+    },
+    {
+      "topic": "mcp",
+      "minutes": 45,
+      "date": "2026-07-22"
+    },
+    {
+      "topic": "csharp",
+      "minutes": 120,
+      "date": "2026-07-23"
+    },
+    {
+      "topic": "rag",
+      "minutes": 45,
+      "date": "2026-07-23"
+    },
+    {
+      "topic": "langgraph",
+      "minutes": 25,
+      "date": "2026-07-24"
+    },
+    {
+      "topic": "agents",
+      "minutes": 45,
+      "date": "2026-07-24"
+    },
+    {
+      "topic": "learning_from_data",
+      "minutes": 45,
+      "date": "2026-07-25"
+    },
+    {
+      "topic": "nexon_prep",
+      "minutes": 60,
+      "date": "2026-07-27"
+    },
+    {
+      "topic": "langgraph",
+      "minutes": 45,
+      "date": "2026-07-31"
+    },
+    {
+      "topic": "nexon_prep",
+      "minutes": 30,
+      "date": "2026-08-01"
+    },
+    {
+      "topic": "nexon_prep",
+      "minutes": 120,
+      "date": "2026-08-03"
+    },
+    {
+      "topic": "langgraph",
+      "minutes": 30,
+      "date": "2026-08-04"
+    },
+    {
+      "topic": "nexon_prep",
+      "minutes": 45,
+      "date": "2026-08-04"
+    },
+    {
+      "topic": "rag",
+      "minutes": 45,
+      "date": "2026-08-05"
+    },
+    {
+      "topic": "agents",
+      "minutes": 60,
+      "date": "2026-08-05"
+    },
+    {
+      "topic": "rag",
+      "minutes": 25,
+      "date": "2026-08-06"
+    },
+    {
+      "topic": "python",
+      "minutes": 50,
+      "date": "2026-08-06"
+    },
+    {
+      "topic": "langgraph",
+      "minutes": 25,
+      "date": "2026-08-06"
+    },
+    {
+      "topic": "python",
+      "minutes": 45,
+      "date": "2026-08-08"
+    },
+    {
+      "topic": "python",
+      "minutes": 45,
+      "date": "2026-08-08"
+    },
+    {
+      "topic": "langgraph",
+      "minutes": 30,
+      "date": "2026-08-10"
+    },
+    {
+      "topic": "csharp",
+      "minutes": 30,
+      "date": "2026-08-10"
+    },
+    {
+      "topic": "rag",
+      "minutes": 45,
+      "date": "2026-08-11"
+    },
+    {
+      "topic": "nexon_prep",
+      "minutes": 120,
+      "date": "2026-08-11"
+    },
+    {
+      "topic": "fastapi",
+      "minutes": 75,
+      "date": "2026-08-12"
+    },
+    {
+      "topic": "vision_agent",
+      "minutes": 50,
+      "date": "2026-08-15"
+    },
+    {
+      "topic": "csharp",
+      "minutes": 15,
+      "date": "2026-08-16"
+    },
+    {
+      "topic": "vision_agent",
+      "minutes": 30,
+      "date": "2026-08-16"
+    },
+    {
+      "topic": "csharp",
+      "minutes": 75,
+      "date": "2026-08-16"
+    },
+    {
+      "topic": "rag",
+      "minutes": 45,
+      "date": "2026-08-17"
+    },
+    {
+      "topic": "sql",
+      "minutes": 30,
+      "date": "2026-08-18"
+    },
+    {
+      "topic": "csharp",
+      "minutes": 30,
+      "date": "2026-08-18"
+    },
+    {
+      "topic": "vision_agent",
+      "minutes": 25,
+      "date": "2026-08-19"
+    },
+    {
+      "topic": "mcp",
+      "minutes": 30,
+      "date": "2026-08-19"
+    },
+    {
+      "topic": "rag",
+      "minutes": 60,
+      "date": "2026-08-19"
+    },
+    {
+      "topic": "docker",
+      "minutes": 45,
+      "date": "2026-08-20"
+    },
+    {
+      "topic": "rag",
+      "minutes": 60,
+      "date": "2026-08-21"
+    },
+    {
+      "topic": "python",
+      "minutes": 25,
+      "date": "2026-08-23"
+    },
+    {
+      "topic": "rag",
+      "minutes": 30,
+      "date": "2026-08-23"
+    },
+    {
+      "topic": "langgraph",
+      "minutes": 45,
+      "date": "2026-08-27"
+    },
+    {
+      "topic": "langgraph",
+      "minutes": 45,
+      "date": "2026-08-27"
+    },
+    {
+      "topic": "langgraph",
+      "minutes": 45,
+      "date": "2026-08-27"
+    }
+  ]
+}

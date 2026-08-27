@@ -1,0 +1,19 @@
+# Secrets — NEVER commit these
+.env
+*.key
+*.pem
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Databases (from memory exercises)
+*.db
+
+# Editor (local settings)
+.vscode/
