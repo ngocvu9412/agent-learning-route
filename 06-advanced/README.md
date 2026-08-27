@@ -1,18 +1,14 @@
 # Week 6: ACP Server & Advanced Patterns
 
-## Learning Goals
-- Build an ACP server to expose your agent as a service
-- Learn HTTP server patterns for agent APIs
-- Understand advanced agent patterns (delegation, collaboration)
-- Implement authentication and security
+What I was after: expose my agent as a service other agents can call — HTTP endpoints, runs, agent discovery.
 
-## Concepts
+## Concepts I worked through
 
 ### 1. ACP Server Architecture
-An ACP server makes your agent accessible to other agents:
+An ACP server makes my agent accessible to other agents:
 
 ```
-Agent A           Agent B (Your Agent with ACP Server)
+Agent A           Agent B (My Agent with ACP Server)
    |                          |
    |--- ACP Request --------->|
    |    "What's the weather?" |
@@ -24,79 +20,31 @@ Agent A           Agent B (Your Agent with ACP Server)
 ```
 
 ### 2. HTTP Server for Agents
-Use Python's built-in `http.server` or frameworks like FastAPI:
+Python's built-in `http.server` was enough:
 
-**Simple HTTP Server**:
 ```python
 from http.server import HTTPServer, BaseHTTPRequestHandler
 import json
 
 class ACPRequestHandler(BaseHTTPRequestHandler):
     def do_POST(self):
-        if self.path == "/message":
+        if self.path == "/runs":
             content_length = int(self.headers['Content-Length'])
             post_data = self.rfile.read(content_length)
             message = json.loads(post_data.decode())
 
-            # Process with agent
-            response = agent.chat(message["content"])
-
-            # Send ACP response
-            self.send_response(200)
-            self.send_header('Content-Type', 'application/json')
-            self.end_headers()
-            self.wfile.write(json.dumps({
-                "from": agent.id,
-                "to": message["from"],
-                "type": "response",
-                "content": response,
-                "timestamp": datetime.now().isoformat()
-            }).encode())
-
-def run_server(port=8080):
-    httpd = HTTPServer(('localhost', port), ACPRequestHandler)
-    httpd.serve_forever()
+            # Process with agent, send JSON response
+            self._send_json({"status": "completed", "result": ...}, 201)
 ```
 
-**FastAPI (more production-ready)**:
-```python
-from fastapi import FastAPI
-from pydantic import BaseModel
+No FastAPI/uvicorn needed for this scale — one handler class, three routes, done. (FastAPI is the production path; that's a later journey.)
 
-app = FastAPI()
+### 3. The Endpoints I Implemented
+- `GET /agents` — list registered agents (id, name, description, capabilities)
+- `POST /runs` — submit a task: read body, create a run id (`str(uuid.uuid4())[:8]`), store, respond 201
+- `GET /runs/{id}` — fetch a run's status/result, 404 when unknown
 
-class ACPMessage(BaseModel):
-    from: str
-    to: str
-    type: str
-    content: str
-    timestamp: str
-
-@app.post("/message")
-async def handle_message(message: ACPMessage):
-    response = agent.chat(message.content)
-    return ACPMessage(
-        from=agent.id,
-        to=message.from,
-        type="response",
-        content=response,
-        timestamp=datetime.now().isoformat()
-    )
-
-if __name__ == "__main__":
-    import uvicorn
-    uvicorn.run(app, port=8080)
-```
-
-### 3. ACP Endpoints
-
-**Standard ACP Endpoints**:
-- `POST /message`: Send message to agent
-- `GET /agents`: List available agents
-- `GET /runs/{id}`: Get status of async run
-- `POST /runs`: Start async task
-
-**Authentication**:
+**Authentication** (theory for now):
 ```python
 # Simple API key check
 API_KEYS = ["secret-key-1", "secret-key-2"]
@@ -104,8 +52,6 @@ API_KEYS = ["secret-key-1", "secret-key-2"]
 def check_auth(request):
     api_key = request.headers.get('X-API-Key')
     return api_key in API_KEYS
-
-# Or OAuth 2.0 for production
 ```
 
 ### 4. Advanced Agent Patterns
@@ -182,31 +128,28 @@ async def execute_parallel_tools(tool_calls):
 # Execute all 3 in parallel instead of sequentially
 ```
 
-## Libraries You'll Need
-- `fastapi`: Modern web framework
-- `uvicorn`: ASGI server for FastAPI
-- `asyncio`: Async/await support
-- `httpx`: Async HTTP client
+## What I used
+- `http.server` (built-in) — HTTPServer, BaseHTTPRequestHandler
+- `json`, `uuid` (built-in)
 
 ## Key Files in Hermes
 - `acp_adapter/server.py`: ACP server implementation
 - `agent/async_utils.py`: Parallel execution utilities
 - `agent/conversation_compression.py`: Compression strategies
 
-## This Week's Exercises
-1. **exercise_11_acp_server.ipynb**: Build a complete ACP server with endpoints
+## The exercise
+1. **exercise_10_acp_server.ipynb**: the ACP server — `AGENTS`/`RUNS` stores, `ACPRequestHandler` (`_send_json`, `do_GET` for /agents and /runs/{id}, `do_POST` for /runs), `run_server(port=8080)` on localhost
 
-## Common Pitfalls
-- **Blocking I/O**: Use async/await for HTTP calls
-- **Memory leaks**: Clean up old conversations
+## Pitfalls I watched for
+- **Blocking I/O**: Use async/await for HTTP calls (theory note — my server is sync)
+- **Memory leaks**: Clean up old conversations/runs
 - **Race conditions**: Handle concurrent requests properly
 - **Not validating input**: Sanitize all incoming messages
 
-## Success Criteria
-- Your ACP server handles POST /message requests
-- It returns valid ACP responses
-- Multiple agents can communicate with your server
-- You understand delegation patterns
+## Where I got to
+- GET /agents lists the registry; GET /runs/{id} returns stored runs (404 on unknown)
+- POST /runs creates a run and responds 201
+- Everything is JSON in, JSON out
 
-## Next Week
-We'll integrate everything into a complete production-ready agent!
+## What came next
+Putting it all together: the StudyTracker capstone.

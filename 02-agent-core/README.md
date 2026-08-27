@@ -1,12 +1,8 @@
 # Week 2: Agent Core Architecture
 
-## Learning Goals
-- Understand the complete agent loop with error handling
-- Learn retry logic for API failures
-- Build robust conversation management
-- Master the ReAct pattern (Reasoning + Acting)
+What I was after: a loop that survives API failures instead of crashing on the first rate limit.
 
-## Concepts
+## Concepts I worked through
 
 ### 1. The Complete Agent Loop
 ```
@@ -25,7 +21,7 @@ Loop until done:
 ```
 
 ### 2. Error Handling & Retry Logic
-API calls fail. Common issues:
+API calls fail. What I ran into:
 - **Rate limits**: Too many requests → wait and retry
 - **Timeouts**: Network issues → retry with exponential backoff
 - **Invalid requests**: Bad parameters → don't retry (user error)
@@ -34,6 +30,8 @@ API calls fail. Common issues:
 **Exponential Backoff**:
 - Wait 1s, then 2s, then 4s, then 8s
 - `delay = base_delay * (2 ^ attempt)`
+
+I wrote the retry loop by hand with `time.sleep` — no retry library needed, and I understood every line.
 
 ### 3. ReAct Pattern (Reasoning + Acting)
 The LLM should:
@@ -54,32 +52,31 @@ Think step by step about what you need.
 - Keep all messages in an array
 - Each message has: `role` (system/user/assistant/tool), `content`
 - Tool results have: `role="tool"`, `tool_call_id`, `content`
-- Manage context window: summarize when too long (Week 4)
 
-## Libraries You'll Need
-- `tenacity`: Retry logic with exponential backoff
-- `time`: For delays between retries
+## What I used
+- `openai` + `python-dotenv` (same setup as week 1)
+- `time` (built-in) for delays between retries
 
 ## Key Files in Hermes
 - `agent/conversation_loop.py`: The core loop implementation
 - `agent/fallback.py`: Error handling and retry logic
 - `agent/context_engine.py`: Conversation history management
 
-## This Week's Exercises
-1. **exercise_4_error_handling.ipynb**: Classify errors and implement retry with exponential backoff
-2. **exercise_5_complete_loop.ipynb**: Full agent with error handling, tools, and message management
+## The exercises
+1. **exercise_4_error_handling.ipynb**: `ErrorClassifier` (retryable vs permanent), then `safe_api_call` with exponential backoff — plus a deliberately broken model to prove the permanent-error path
+2. **exercise_5_complete_loop.ipynb**: the full loop — tools, error classification, message management in one `run_conversation`
 
-## Common Pitfalls
-- **Infinite loops**: Always set `max_iterations` (default 10-20)
-- **Missing tool_call_id**: Each tool result must reference which call it answers
-- **Wrong role values**: Only use "system", "user", "assistant", "tool"
-- **Not validating tool results**: Check function returned successfully before appending
+## Pitfalls I watched for
+- **Infinite loops**: always set `max_iterations` (mine default to 10)
+- **Missing tool_call_id**: each tool result must reference which call it answers
+- **Wrong role values**: only "system", "user", "assistant", "tool"
+- **Not validating tool results**: check the function returned successfully before appending
 
-## Success Criteria
-- Your agent recovers from rate limit errors automatically
-- It stops after giving a final answer (not infinite loops)
-- It handles multiple tool calls in a single turn
-- Error messages are clear, not cryptic
+## Where I got to
+- The agent recovers from rate-limit errors automatically
+- It stops after a final answer instead of looping forever
+- Multiple tool calls in a single turn work
+- Errors come back as readable messages, not tracebacks
 
-## Next Week
-We'll build a sophisticated tool system with registry and discovery!
+## What came next
+Hardcoding tool names was getting old — a real tool registry.

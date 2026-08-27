@@ -1,12 +1,8 @@
 # Week 1: Fundamentals & Environment
 
-## Learning Goals
-- Set up development environment for agent building
-- Understand LLM APIs and how to call them
-- Learn the structure of tool/function calling schemas
-- Build a basic agent that responds to questions
+What I was after: make my first LLM calls, learn the tool-schema format, and get one real agent loop running.
 
-## Concepts
+## Concepts I worked through
 
 ### 1. LLM API Integration
 LLM providers (Google Gemini, OpenAI, Anthropic) expose HTTP APIs for chat completions. The key components:
@@ -18,7 +14,7 @@ LLM providers (Google Gemini, OpenAI, Anthropic) expose HTTP APIs for chat compl
 - **Tools**: Optional array of function schemas the model can call
 
 ### 2. Tool/Function Calling Schemas
-Tool calling allows the LLM to request your code to execute specific functions. The schema format:
+Tool calling lets the LLM request that my code execute a function. The schema format:
 
 ```json
 {
@@ -52,35 +48,31 @@ An agent is a loop:
 4. **Learn**: Add tool results back to conversation
 5. **Repeat** until LLM gives final answer
 
-## Libraries You'll Need
-- `openai`: Universal SDK compatible with Google Gemini
-- `python-dotenv`: Load API keys from .env files
-- `nbformat`: Work with Jupyter notebooks (already installed)
+## What I used
+- `openai`: universal SDK, pointed at Google Gemini
+- `python-dotenv`: load the API key from `.env` at the route root (`load_dotenv("../.env")`)
 
 ## Key Files in Hermes
 - `agent/providers/gemini_adapter.py`: How Hermes calls Google Gemini
 - `agent/agent_init.py`: Setting up the agent environment
 - `tools/__init__.py`: How tools are registered
 
-## This Week's Exercises
-1. **exercise_1_hello_agent.ipynb**: Build simplest agent - just call LLM and return response
-2. **exercise_2_tool_schema.ipynb**: Define tool schemas and implement the function handler
-3. **exercise_3_basic_loop.ipynb**: Implement the basic agent loop with tool calling
+## The exercises
+1. **exercise_1_hello_agent.ipynb**: simplest agent — one call to the LLM, no tools
+2. **exercise_2_tool_schema.ipynb**: a weather tool schema + handler, plus error handling for unknown functions and wrong arguments
+3. **exercise_3_basic_loop.ipynb**: the basic agent loop — `get_time` / `add_numbers` tools, a dispatcher, model requests → code executes → result goes back
 
-## Before Starting
-1. Set your Google Gemini API key as environment variable:
-   ```bash
-   export GEMINI_API_KEY="your-key-here"
-   ```
-2. Or create `.env` file in this folder:
-   ```
-   GEMINI_API_KEY=your-key-here
-   ```
+## Setup I used
+The `.env` file lives at the route root (the parent of this folder) — every notebook loads it with `load_dotenv("../.env")`:
+```
+GEMINI_API_KEY=...
+GEMINI_MODEL=gemini-flash-latest
+```
 
-## Success Criteria
-- You can call Google Gemini API and get responses
-- You understand how to define tool schemas
-- You can build a loop that executes tools when the LLM requests them
+## Where I got to
+- Calling the Gemini API and getting real responses back
+- Defining tool schemas the model actually calls
+- A loop that executes tools when the LLM requests them
 
-## Next Week
-We'll add error handling and make the loop more robust!
+## What came next
+Error handling and retries — the loop worked, but any API hiccup killed it.

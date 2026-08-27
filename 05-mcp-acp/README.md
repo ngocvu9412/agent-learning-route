@@ -1,17 +1,13 @@
 # Week 5: Multi-Provider Support & MCP/ACP
 
-## Learning Goals
-- Build abstraction layer for multiple LLM providers
-- Implement automatic fallback when providers fail
-- Understand MCP (Model Context Protocol) in depth
-- Learn ACP (Agent Communication Protocol) for agent-to-agent communication
+What I was after: an abstraction layer so the agent isn't married to one provider — and automatic fallback when that provider dies.
 
-## Concepts
+## Concepts I worked through
 
 ### 1. Multi-Provider Architecture
 Different providers have different strengths:
-- **Google Gemini**: Access to many models (Gemini, Claude, GPT, etc.)
-- **OpenAI**: Best GPT-4 models
+- **Google Gemini**: Generous free tier
+- **z.ai**: GLM models
 - **Anthropic**: Claude with long context
 - **Local**: llama.cpp, Ollama (no API cost, offline)
 
@@ -34,6 +30,8 @@ class LLMProvider(ABC):
 - Compare models easily
 - Fallback when one fails
 
+The kicker I discovered: with the OpenAI SDK, both providers use the SAME client — only base_url, key, and model change. The abstraction is thin on purpose.
+
 ### 2. Provider Factory
 ```python
 class ProviderFactory:
@@ -45,55 +43,63 @@ class ProviderFactory:
 
     @classmethod
     def create(cls, name, **kwargs):
+        if name not in cls._providers:
+            raise ValueError(f"Unknown provider: {name}")
         return cls._providers[name](**kwargs)
 
 # Register
 ProviderFactory.register("gemini", GeminiProvider)
-ProviderFactory.register("openai", OpenAIProvider)
 
 # Use
 provider = ProviderFactory.create("gemini", api_key="...")
 response = provider.chat(messages, "gemini-flash-latest")
 ```
 
+The division of labor that stuck with me: **the factory only BUILDS** (name → instance). It knows nothing about priorities, retries, or health.
+
 ### 3. Fallback Chain
 Try providers in priority order until one succeeds:
 
 ```python
+@dataclass
+class ProviderEntry:
+    provider: object
+    model: str
+    priority: int = 0
+    error_count: int = 0
+    last_error_time: float = 0.0
+
 class FallbackChain:
-    def __init__(self):
-        self.providers = []  # (provider, model, priority)
-
     def add_provider(self, provider, model, priority=0):
-        self.providers.append((provider, model, priority))
-        self.providers.sort(key=lambda x: x[2])  # Sort by priority
+        # append + sort by priority
 
-    def chat(self, messages):
-        for provider, model, _ in self.providers:
-            try:
-                return provider.chat(messages, model)
-            except RetryableError:
-                continue  # Try next provider
-        raise AllProvidersFailedError()
+    def get_healthy_providers(self):
+        # error_count < 3, OR last error > 60s ago
+
+    def chat(self, messages, max_retries=2):
+        # per provider: retry with backoff, record errors,
+        # return {"error": "All providers failed"} at the end
 ```
 
 **Retryable vs Non-retryable Errors**:
 - **Retryable**: Rate limits (429), timeouts, 502/503/504
 - **Non-retryable**: 400 bad request, 401 unauthorized, 404 not found
 
-### 4. MCP (Model Context Protocol) Deep Dive
+Retrying a 404 (wrong model name) is pure waste — classify first, then retry.
+
+### 4. MCP (Model Context Protocol)
 MCP is the standard for connecting LLMs to tools and data:
 
 **MCP Server**:
-```python
-# A server exposes tools via JSON-RPC
+```json
+// A server exposes tools via JSON-RPC
 {
   "jsonrpc": "2.0",
   "method": "tools/list",
   "id": 1
 }
 
-# Response
+// Response
 {
   "jsonrpc": "2.0",
   "result": [
@@ -103,7 +109,7 @@ MCP is the standard for connecting LLMs to tools and data:
 }
 ```
 
-**MCP Client** (in your agent):
+**MCP Client** (in my agent, conceptually):
 ```python
 class MCPClient:
     def __init__(self, server_url):
@@ -147,21 +153,11 @@ ACP enables agent-to-agent communication:
 }
 ```
 
-**Hermes ACP Server**:
-```python
-# Exposes agent as ACP endpoint
-# acp_adapter/server.py
-class ACPServer:
-    def handle_message(self, message):
-        # Route to agent
-        response = agent.chat(message.content)
-        # Send back to requester
-        return ACPMessage(from=self.id, to=message.from, ...)
-```
+The ACP server itself is Week 6's build.
 
-## Libraries You'll Need
-- `httpx` or `aiohttp`: HTTP client for MCP/ACP
-- `pydantic`: Validate message schemas
+## What I used
+- `openai` SDK for both providers (same client, different base_url/key/model)
+- `abc` (ABC, abstractmethod), `dataclasses`, `time` — all built-in
 
 ## Key Files in Hermes
 - `agent/providers/gemini_adapter.py`: Google Gemini provider
@@ -169,24 +165,20 @@ class ACPServer:
 - `agent/providers/llama_adapter.py`: Local provider
 - `hermes_cli/fallback.py`: Fallback chain
 - `hermes_cli/mcp_client.py`: MCP client
-- `hermes_cli/mcp_server.py`: MCP server
-- `acp_adapter/server.py`: ACP server
 
-## This Week's Exercises
-1. **exercise_9_provider_factory.ipynb**: Build provider factory with multiple providers
-2. **exercise_10_fallback_chain.ipynb**: Implement fallback chain with error classification
+## The exercise
+1. **exercise_9_provider_factory_and_fallback.ipynb** — one notebook, two halves: the factory half (LLMProvider ABC → GeminiProvider → ProviderFactory) and the fallback half (ProviderEntry dataclass → FallbackChain with health tracking and retries). Both halves shipped straight into the capstone's `providers.py`.
 
-## Common Pitfalls
+## Pitfalls I watched for
 - **Not validating models**: Check if provider supports requested model
 - **Infinite fallback loops**: Track failed providers, don't retry immediately
 - **Different response formats**: Each provider returns slightly different JSON
-- **MCP connection timeouts**: Servers can be slow or offline
+- **Health state**: without error_count + last_error_time, a dead provider poisons every request
 
-## Success Criteria
-- Your agent can switch between providers seamlessly
-- It falls back automatically when primary provider fails
-- You can connect to MCP servers and use their tools
-- You understand how agents communicate via ACP
+## Where I got to
+- The agent switches providers seamlessly — same interface, same parse
+- Fallback fires automatically when the primary provider fails
+- All providers dead → clean error dict, not a crash
 
-## Next Week
-We'll build an ACP server to expose your agent to other agents!
+## What came next
+Exposing the agent as a service — an ACP HTTP server.

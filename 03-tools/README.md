@@ -1,12 +1,8 @@
 # Week 3: Tool System & MCP
 
-## Learning Goals
-- Build a flexible tool registry system
-- Implement essential tools (filesystem, web search, code execution)
-- Understand MCP (Model Context Protocol) for external tools
-- Learn async vs sync tool execution
+What I was after: stop hardcoding tools — build a registry, and understand what MCP adds on top.
 
-## Concepts
+## Concepts I worked through
 
 ### 1. Tool Registry Pattern
 Instead of hardcoding tool names, use a registry:
@@ -26,31 +22,19 @@ class ToolRegistry:
         return self._tools[name].handler(**args)
 ```
 
-**Why this matters:**
+**Why this matters**:
 - Easy to add new tools without changing agent code
 - Tools can be loaded from plugins (Week 5)
 - Support for categories (filesystem, web, code)
 
-### 2. Essential Tool Categories
+**Essential tool categories** (what Hermes ships):
+- **Filesystem**: `read_file`, `write_file`, `list_files`, `search_in_files`, `delete_file`
+- **Web**: `web_search`, `fetch_url`, `browse_web`
+- **Code**: `execute_code`, `analyze_code`, `run_tests`
 
-**Filesystem Tools**:
-- `read_file(path)`: Read file contents
-- `write_file(path, content)`: Write to file
-- `list_files(path)`: List directory contents
-- `search_in_files(query, path)`: Search for text in files
-- `delete_file(path)`: Delete a file
+I implemented the filesystem set myself (exercise 6); the web/code categories stayed conceptual for me at this stage — good to know Hermes's 186+ tools organize along these lines.
 
-**Web Tools**:
-- `web_search(query)`: Search the web
-- `fetch_url(url)`: Get webpage content
-- `browse_web(query)`: AI-assisted web browsing
-
-**Code Tools**:
-- `execute_code(code)`: Run Python code
-- `analyze_code(path)`: Get code structure
-- `run_tests()`: Execute test suite
-
-### 3. MCP (Model Context Protocol)
+### 2. MCP (Model Context Protocol)
 MCP is a standard for connecting LLMs to external tools and data:
 
 **Architecture**:
@@ -70,7 +54,9 @@ Agent → MCP Client → MCP Server → External System
 - `hermes_cli/mcp_server.py`: Runs tool servers
 - `tools/mcp_*.py`: Tools exposed via MCP
 
-### 4. Sync vs Async Execution
+**Exercise 7 simulated this**: a fake `MCPServer` class (name, command, connect/disconnect) — enough to feel the shape of the protocol without running a real server.
+
+### 3. Sync vs Async Execution
 **Sync (blocking)**:
 ```python
 def call_tool_sync(name, args):
@@ -90,10 +76,11 @@ async def call_tool_async(name, args):
 - **Async**: I/O heavy (web_search, execute_code with timeout)
 - **Parallel**: Run multiple independent tools together
 
-## Libraries You'll Need
-- `aiohttp`: Async HTTP requests (for MCP)
-- `asyncio`: Async/await support
-- `pathlib`: Modern file path handling
+My tools stayed sync (simple functions — the right complexity level for me); async stayed a theory note.
+
+## What I used
+- `pathlib`: file path handling, `read_text` / `glob` / `unlink`
+- `dataclasses`: the `Tool` dataclass in exercise 7
 
 ## Key Files in Hermes
 - `tools/registry.py`: Tool registry implementation
@@ -101,21 +88,20 @@ async def call_tool_async(name, args):
 - `hermes_cli/mcp_client.py`: MCP client code
 - `tools/filesystem/*.py`: Filesystem tool implementations
 
-## This Week's Exercises
-1. **exercise_6_filesystem_tools.ipynb**: Implement 5 essential filesystem tools
-2. **exercise_7_tool_registry.ipynb**: Build a tool registry that manages tools
+## The exercises
+1. **exercise_6_filesystem_tools.ipynb**: `FileSystemTools` class — write/read/list/search/delete + `get_tool_schemas()` for all five
+2. **exercise_7_tool_registry.ipynb**: `Tool` dataclass → `ToolRegistry` (register/get_schema/call/list) → a simulated `MCPServer` class
 
-## Common Pitfalls
+## Pitfalls I watched for
 - **Not validating paths**: Prevent `../../../etc/passwd` attacks
 - **Timeout issues**: Code execution and web requests can hang
 - **Memory leaks**: Keep file handles and connections closed
 - **Race conditions**: Multiple tools writing same file
 
-## Success Criteria
-- Your registry can dynamically add/remove tools
+## Where I got to
+- The registry adds/removes tools dynamically at runtime
 - Filesystem tools are safe (no directory traversal)
 - Tool schemas are valid JSON Schema
-- You understand how MCP connects external tools
 
-## Next Week
-We'll add persistent memory to remember conversations across sessions!
+## What came next
+The agent worked but forgot everything on restart — memory.

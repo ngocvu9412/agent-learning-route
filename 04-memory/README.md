@@ -1,12 +1,8 @@
 # Week 4: Memory Systems
 
-## Learning Goals
-- Understand why agents need memory
-- Build persistent storage for conversations and facts
-- Learn conversation compression for context management
-- Implement user preference storage
+What I was after: an agent that remembers yesterday's conversation without me re-explaining everything.
 
-## Concepts
+## Concepts I worked through
 
 ### 1. Why Agents Need Memory
 LLMs are stateless - they forget everything between requests. Memory provides:
@@ -36,7 +32,6 @@ memory = {"messages": [], "user_facts": {}}
 
 **SQLite (persistent)**:
 ```python
-# Hermes approach
 CREATE TABLE conversations (
     id TEXT PRIMARY KEY,
     messages TEXT  # JSON array
@@ -44,11 +39,11 @@ CREATE TABLE conversations (
 CREATE TABLE user_facts (
     key TEXT PRIMARY KEY,
     value TEXT,
-    category TEXT  # identity, preference, etc.
+    category TEXT
 );
 ```
 
-**Vector DB (semantic search)**:
+**Vector DB (semantic search)** — future territory for me:
 - Store embeddings of conversations
 - Find relevant past discussions
 - Retrieve by similarity, not exact match
@@ -76,7 +71,7 @@ messages = messages[-100:]  # Last 100 messages
 messages = [m for m in messages if m.is_important()]
 ```
 
-### 4. Memory Store Design (Hermes)
+### 4. Memory Store Design (what exercise 8 actually built)
 ```python
 class MemoryStore:
     def __init__(self, db_path):
@@ -97,9 +92,14 @@ class MemoryStore:
     def save_skill(self, name, content, description):
         # Store reusable procedure
 
-    def search_facts(self, query):
-        # Vector search for relevant facts
+    def get_skill(self, name):
+        # Retrieve by name
+
+    def get_stats(self):
+        # Row counts per table
 ```
+
+Three tables: `conversations`, `user_facts`, `skills` — all created with `CREATE TABLE IF NOT EXISTS` and natural/surrogate keys explained in the notebook.
 
 ### 5. When to Save to Memory
 **Save automatically**:
@@ -117,30 +117,28 @@ class MemoryStore:
 - Passwords
 - PII without consent
 
-## Libraries You'll Need
-- `sqlite3`: Built-in Python database
-- `sentence-transformers`: For embeddings (advanced)
-- `chromadb` or `faiss`: Vector database (advanced)
+## What I used
+- `sqlite3`: built-in — no server, no drivers, perfect at this scale
+- everything else was built-in Python
 
 ## Key Files in Hermes
 - `agent/memory_store.py`: SQLite memory implementation
 - `agent/context_engine.py`: Conversation management
 - `agent/conversation_compression.py`: Compression strategies
 
-## This Week's Exercises
-1. **exercise_8_sqlite_memory.ipynb**: Build a complete SQLite memory store
+## The exercise
+1. **exercise_8_sqlite_memory.ipynb**: a complete `MemoryStore` — three tables (conversations, user_facts, skills), save/get for each, plus `get_stats()`
 
-## Common Pitfalls
-- **SQL injection**: Always use parameterized queries
+## Pitfalls I watched for
+- **SQL injection**: Always use parameterized queries (`?` placeholders)
 - **Race conditions**: Use transactions for writes
 - **Not pruning old data**: Database grows indefinitely
-- **Wrong JSON format**: Messages must be valid JSON arrays
+- **Wrong JSON format**: Messages must be valid JSON
 
-## Success Criteria
-- Your agent remembers conversations across restarts
-- It can retrieve user preferences
-- Database handles concurrent access safely
-- You understand when to compress context
+## Where I got to
+- Conversations survive restarts — restart Python, same db, chat continues
+- User facts and skills store and retrieve by key
+- Parameterized queries everywhere
 
-## Next Week
-We'll add support for multiple LLM providers and automatic fallbacks!
+## What came next
+One provider was a single point of failure — fallbacks.

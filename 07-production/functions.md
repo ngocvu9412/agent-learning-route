@@ -1,106 +1,97 @@
 # Week 7 — Function Syntax Reference (Explained)
 
-## SQLite in the agent loop
+The syntax StudyTracker actually uses, with notes on where each piece earns its keep.
+
+## JSON round-trip storage (the 400 lesson)
 ```python
-# Load history — pull every saved message for this session, oldest first
-rows = conn.execute(
-    "SELECT role, content FROM messages WHERE session_id=? ORDER BY id",
-    (self.session_id,)          # tuple fills the ? — trailing comma makes it a tuple!
-).fetchall()
-
-for r in rows:
-    messages.append({"role": r[0], "content": r[1]})   # r[0]=role, r[1]=content (SELECT order)
-
-# Save a message
-conn.execute(
-    "INSERT INTO messages (session_id, role, content) VALUES (?, ?, ?)",
-    (self.session_id, "user", user_input)
+# Save — store the WHOLE message dict, not (role, content) pairs.
+# Gemini 400s ("invalid argument") if a tool message loses tool_call_id.
+self.conn.execute(
+    "INSERT INTO conversations (session_id, message) VALUES (?, ?)",
+    (session_id, json.dumps(msg))    # dict → JSON string, nothing dropped
 )
-conn.commit()    # required after INSERT — without it the row vanishes when program ends
+conn.commit()
+
+# Restore — lossless: json.loads brings the exact dict back
+rows = conn.execute(
+    "SELECT message FROM conversations WHERE session_id = ? ORDER BY id LIMIT ?",
+    (session_id, limit)
+).fetchall()
+history = [json.loads(r["message"]) for r in rows]
 ```
 
-## Session IDs
+## Env loading that works from any cwd
 ```python
-import time
-session_id = f"s{int(time.time())}"     # "s1722864000" — unique per second, groups this chat's rows
+from pathlib import Path
+load_dotenv(Path(__file__).resolve().parent.parent / ".env")   # route root — machine-independent
+load_dotenv()                                                    # plus cwd/.env if present
 ```
 
-## input() (terminal input)
+## Session handling
 ```python
-text = input("You: ")           # print the prompt, WAIT for the user to type + press Enter, return the string
-text = input("You: ").strip()   # remove accidental spaces/newlines around the text
-text.lower() in ("bye", "exit", "quit")   # check exit commands (lower() so "Quit" also works)
+# All distinct sessions (for the picker at startup)
+rows = conn.execute("SELECT DISTINCT session_id FROM conversations").fetchall()
+sessions = [row["session_id"] for row in rows]
 ```
 
-## lambda (inline functions)
+## The dispatch dict (tools without classes)
 ```python
-lambda: datetime.now().strftime("%H:%M:%S")   # zero-arg lambda — call it to get the time string
-lambda a, b: a + b                             # two-arg lambda — adds its arguments
-
-# stored in a dict as handlers (functions are values in Python — you can store them):
-self._handlers = {
-    "get_time": lambda: datetime.now().strftime("%H:%M:%S"),
-    "add_numbers": lambda a, b: a + b,
+TOOL_FUNCTIONS = {
+    "log_session": log_session,     # name → plain function
+    "weekly_report": weekly_report,
 }
+
+# The model asks; the dict answers:
+result = TOOL_FUNCTIONS[tc.function.name](**args)   # **args unpacks the JSON dict
 ```
 
-## Interactive REPL pattern
+## The tool result message
 ```python
-while True:                              # loop until user quits
-    try:
-        user_input = input("You: ").strip()
-        if user_input.lower() in ("bye", "exit", "quit"):
-            break                        # exit the while loop
-        elif user_input:                 # skip empty input (just pressed Enter)
-            self.chat(user_input)
-    except KeyboardInterrupt:            # Ctrl+C pressed — exit gracefully, no traceback
-        break
+messages.append({
+    "role": "tool",                     # marks this as a tool result
+    "tool_call_id": tc.id,              # links result to the exact call
+    "name": tc.function.name,
+    "content": json.dumps(result),      # must be a string for the API
+})
 ```
 
-## The full agent loop essentials
+## Chain errors as values, not exceptions
 ```python
-resp = client.chat.completions.create(model=..., messages=..., tools=...)
-msg = resp.choices[0].message
-
-messages.append(msg.model_dump(exclude_none=True))   # save to history; exclude_none stops Gemini 400 errors
-
-if not msg.tool_calls:                               # empty/None = no more tools wanted →
-    return msg.content                               # this IS the final answer
-
-for tc in msg.tool_calls:
-    fname = tc.function.name                         # which tool the LLM wants
-    fargs = json.loads(tc.function.arguments)        # arguments arrive as a JSON string → dict
-    result = self._handlers[fname](**fargs)          # dict → keyword args, run the tool
-    messages.append({
-        "role": "tool",                              # mark this as a tool result message
-        "tool_call_id": tc.id,                       # link result to the specific request
-        "name": fname,
-        "content": str(result)                       # must be a string for the API
-    })
+response = self.chain.chat(messages=..., tools=...)
+if isinstance(response, dict) and "error" in response:
+    return "Sorry — all providers are down right now."   # graceful, no crash
 ```
 
-## Wiring components in __init__
+## Health tracking (circuit-breaker shape)
 ```python
-class MiniHermesAgent:
-    def __init__(self, db_path="mini_agent.db", model=None):
-        self.model = model or os.environ.get("GEMINI_MODEL")   # argument wins; else .env value
-        self.session_id = f"s{int(time.time())}"
-        self._init_provider()      # creates self.client (OpenAI SDK pointed at Gemini)
-        self._init_tools()         # creates self.tools (schemas) + self._handlers (dict)
-        self._init_memory(db_path) # creates self.conn (SQLite) + the messages table
+provider_entry.error_count += 1
+provider_entry.last_error_time = time.time()
+
+# Healthy = fewer than 3 errors, OR the last error was >60s ago
+healthy = [e for e in self._providers
+           if e.error_count < 3 or (time.time() - e.last_error_time > 60)]
 ```
 
-## try/except around everything
+## Retry with backoff, classify first
 ```python
-try:
-    resp = client.chat.completions.create(...)
-except Exception as e:
-    print(f"API error: {e}")      # network/key/quota problems — report instead of crashing
-    return None
+retryable = ["rate limit", "timeout", "502", "503", "504"]
+if not any(p in error_str.lower() for p in retryable):
+    break            # permanent error (e.g. 404 bad model) — stop wasting calls
+time.sleep(2 ** attempt)   # 1s, 2s, 4s
 ```
 
-## Cleanup
+## Date math for weekly_report
 ```python
-conn.close()               # close db connection — flushes everything safely
-os.remove("mini_agent.db") # delete the test database between runs for a fresh start
+from datetime import date, timedelta
+cutoff = date.today() - timedelta(days=7)
+if date.fromisoformat(session["date"]) >= cutoff:   # ISO strings compare as dates
+    ...
+```
+
+## input() REPL essentials
+```python
+user_input = input("You: ")
+if user_input == "quit":
+    break
+print(f"Agent: {agent.chat(user_input)}")
 ```
