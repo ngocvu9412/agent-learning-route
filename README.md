@@ -48,7 +48,3 @@ Acceptance-tested end to end: tool round-trips, lossless persistence across rest
 - `WinError 32` on Windows: close the SQLite connection before touching the file — always
 - A fallback chain is just priority order + health counting + a retry budget; nothing magical
 - python-dotenv tolerates spaces around `=` (verified the hard way)
-
-## What's next
-
-A vision agent: a local LLM brain (ollama) driving an in-process CNN classifier through three tools — same loop pattern, new capabilities.
